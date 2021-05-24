@@ -85,10 +85,6 @@ def party_run():
 
 # button_a: next mode, button_b: sleep mode
 def super_run():
-    # dual mode
-    try:
-        run(0,0)
-    except: # I2C error ...
     run_list = [sleep_run, sonar_run, line_run, radio_run, party_run]
     mode = 0
     while True:
