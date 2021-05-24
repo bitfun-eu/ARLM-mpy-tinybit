@@ -1,8 +1,16 @@
 from microbit import *
 from tinybit import *
+import radio
 from random import randint
 
 FIND_LINE = False
+#radio.config(power=7, channel=0, address=0, group=0, data_rate=radio.RATE_250KBIT)
+radio.on()
+
+def cap_speed(n):
+    if n < -255: return -255
+    elif n > 255: return 255
+    else: return n
 
 def sleep_run():
     global FIND_LINE
@@ -54,8 +62,22 @@ def line_run(speed=60, delta=60):
         if left == 1 or right == 1:
             FIND_LINE = True
 
+V = 0
 def radio_run():
-    pass
+    global V
+    try:
+        data = radio.receive()
+        left, right = data.split()
+    except:
+        return
+    display.set_pixel(4, 4, V)
+    if V: V = 0
+    else: V = 9
+    left = int(left)
+    right = int(right)
+    left = cap_speed(left)
+    right = cap_speed(right)
+    run(left, right)
 
 def check():
     d = measure()
@@ -82,9 +104,33 @@ def party_run():
     run(left,right)
     sleep(1000)
 
+def remote_loop(xpin=pin1, ypin=pin2, period=100):
+    v = 9
+    while True:
+        x = xpin.read_analog()
+        y = ypin.read_analog()
+        speed = (y - 512) >> 1 # [0, 1024] -> [-512, 512] -> [-255, 255]
+        delta = (x - 512) >> 2 # [0, 1024] -> [-512, 512] -> [-128, 128]
+        left = cap_speed(speed + delta)
+        right = cap_speed(speed - delta)
+        s = str(left) + ' ' + str(right)
+        radio.send(s)
+        print(s)
+        display.set_pixel(4, 4, v)
+        if v: v = 0
+        else: v = 9
+        sleep(period)
 
 # button_a: next mode, button_b: sleep mode
 def super_run():
+    # dual mode
+    try:
+        run(0,0)
+    except OSError: # I2C error ...
+        display.show(Image.HEART)
+        remote_loop()
+        display.show(Image.SAD)
+        return
     run_list = [sleep_run, sonar_run, line_run, radio_run, party_run]
     mode = 0
     while True:
