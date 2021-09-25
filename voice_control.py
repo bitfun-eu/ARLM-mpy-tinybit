@@ -19,6 +19,23 @@ while True:
 # e.g. if voice comes from left, then it turns left, if voice comes from right, it turns right?
 # There is a mic sensor in the hardware pack, please use microbit v1 if your tinybit is not fixed for v2.
 
+# running only when voice KEEPS high
+from microbit import pin1, sleep
+from tinybit import run
+
+def listen(level=100, duration_ms=1000, speed=70, wait=300):
+    noise = pin1.read_analog()
+    if noise > level:
+        run(speed, speed)
+    else:
+        run(0, 0)
+        #sleep(duration_ms)
+    #run(0, 0)
+    #sleep(wait)
+
+while True:
+    listen(level=150)
+
 # Below is another version which is more sensitive, think about why this is the case?
 from microbit import pin1, sleep
 from tinybit import run
