@@ -7,11 +7,8 @@ radio.on()
 def send():
     display.show(Image.HEART)
     speed = acc.get_y()
-    if speed < 0:
-        speed = -speed
-        speed = speed//4
-    else:
-        speed = 0
+    speed = -speed
+    speed = speed // 4
     s = str(speed)
     b = bytes(s, 'utf-8')
     radio.send(b)
